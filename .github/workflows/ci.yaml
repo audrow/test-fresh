@@ -3,7 +3,18 @@ name: CI
 on: push
 
 jobs:
-  build:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1.0.0
+        with:
+          deno-version: v1.x
+      - run: deno fmt --check
+      - run: deno lint
+
+
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -13,10 +24,8 @@ jobs:
       - uses: denoland/setup-deno@v1.0.0
         with:
           deno-version: v1.x
-      - run: deno fmt --check
-      - run: deno lint
       - run: deno test --allow-all --coverage=cov/
-
       # This generates a report from the collected coverage in `deno test --coverage`. It is
       # stored as a .lcov file which integrates well with services such as Codecov, Coveralls and Travis CI.
       - run: deno coverage --lcov cov/ > cov.lcov
+        if: ${{ matrix.os }} == ubuntu-latest
